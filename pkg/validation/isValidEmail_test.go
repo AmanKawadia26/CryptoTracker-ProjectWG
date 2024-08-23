@@ -8,7 +8,6 @@ func TestIsValidEmail(t *testing.T) {
 		email    string
 		expected bool
 	}{
-		// Valid emails
 		{"test@example.com", true},
 		{"user.name+tag+sorting@example.com", true},
 		{"user@sub.example.com", true},

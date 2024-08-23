@@ -8,17 +8,14 @@ func TestIsValidMobile(t *testing.T) {
 		mobile   int
 		expected bool
 	}{
-		// Valid mobile numbers
 		{1234567890, true},
 		{9876543210, true},
-
-		// Invalid mobile numbers
-		{123456789, false},      // Less than 10 digits
-		{12345678901, false},    // More than 10 digits
-		{12345678, false},       // Less than 10 digits
-		{12345678901234, false}, // More than 10 digits
-		{0, false},              // Edge case: Single digit
-		{-1234567890, false},    // Negative number
+		{123456789, false},     
+		{12345678901, false},    
+		{12345678, false},       
+		{12345678901234, false}, 
+		{0, false},              
+		{-1234567890, false},    
 	}
 
 	for _, test := range tests {

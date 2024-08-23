@@ -84,10 +84,6 @@ func TestDisplayMainMenu(t *testing.T) {
 	}
 }
 
-func TestGetHiddenInput(t *testing.T) {
-	// Testing `GetHiddenInput` is complex due to its interactive nature. Generally requires manual testing or use of specific libraries.
-}
-
 func TestPrintError(t *testing.T) {
 	expectedOutput := color.RedString("Sample error message\n")
 	output := captureOutput(func() {

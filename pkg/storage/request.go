@@ -14,7 +14,7 @@ const requestFile = "requests.json"
 
 // GetAllUsers retrieves all users
 func GetAllUsers() ([]*models.User, error) {
-	data, err := ioutil.ReadFile("users.json") // Assuming user data is stored in user.json
+	data, err := ioutil.ReadFile("users.json") 
 	if err != nil {
 		color.New(color.FgRed).Printf("Error reading user file: %v\n", err)
 		log.Println("Error reading user file:", err)
@@ -84,7 +84,7 @@ func UpdateRequestStatus(request *models.Request) error {
 
 	updated := false
 	for i, r := range requests {
-		if r.ID == request.ID { // Assuming Request has an ID field
+		if r.ID == request.ID { 
 			requests[i] = request
 			updated = true
 			break

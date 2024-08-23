@@ -8,7 +8,6 @@ func TestIsValidUsername(t *testing.T) {
 		username string
 		expected bool
 	}{
-		// Valid usernames
 		{"user123", true},
 		{"user_name", true},
 		{"UserName", true},
@@ -16,15 +15,13 @@ func TestIsValidUsername(t *testing.T) {
 		{"username_", true},
 		{"_username", true},
 		{"u123", true},
-
-		// Invalid usernames
-		{"user!123", false},     // Contains special character
-		{"user name", false},    // Contains space
-		{"user@name", false},    // Contains special character
-		{"user-name", false},    // Contains hyphen
-		{"user.name", false},    // Contains period
-		{"", false},             // Empty username
-		{"user name123", false}, // Contains space
+		{"user!123", false},     
+		{"user name", false},    
+		{"user@name", false},    
+		{"user-name", false},    
+		{"user.name", false},    
+		{"", false},             
+		{"user name123", false}, 
 	}
 
 	for _, test := range tests {
