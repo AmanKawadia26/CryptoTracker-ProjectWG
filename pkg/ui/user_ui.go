@@ -1,21 +1,20 @@
-package main
+package ui
 
 import (
-	"cryptotracker/internal/admin"
 	"cryptotracker/internal/crypto"
+	user2 "cryptotracker/internal/user"
 	"cryptotracker/models"
-	"cryptotracker/pkg/ui"
 	"fmt"
 	"github.com/fatih/color"
 	"log"
 	"os"
 )
 
-// mainMenu displays the main menu for a regular user
-func mainMenu(user *models.User) {
+// MainMenu displays the main menu for a regular user
+func MainMenu(user *models.User) {
 	for {
-		ui.ClearScreen()
-		ui.DisplayMainMenu()
+		ClearScreen()
+		DisplayMainMenu()
 
 		var choice int
 		color.New(color.FgYellow).Print("Enter your choice: ")
@@ -29,14 +28,8 @@ func mainMenu(user *models.User) {
 		case 3:
 			crypto.SetPriceAlert(user)
 		case 4:
-			if user.Role == "admin" {
-				admin.ShowAdminPanel()
-			} else {
-				color.New(color.FgRed).Println("This user is not an admin.\n")
-			}
+			user2.UserProfile(user.Username)
 		case 5:
-			UserProfile(user.Username)
-		case 6:
 			color.New(color.FgCyan).Println("Logging out...")
 			log.Println("Logging out...")
 			os.Exit(0)

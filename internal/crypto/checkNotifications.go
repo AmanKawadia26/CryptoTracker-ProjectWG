@@ -1,36 +1,55 @@
 package crypto
 
 import (
+	"cryptotracker/internal/api"
 	"cryptotracker/models"
 	"encoding/json"
 	"github.com/fatih/color"
 	"io/ioutil"
+	"strconv"
 	"time"
 )
 
-// Check if any notification requests have met their target price
-func checkNotifications() {
+// CheckNotifications checks if any notification requests for a specific user have met their target price
+func CheckNotifications(username string) {
 	notifications, err := LoadPriceNotifications()
 	if err != nil {
+		color.New(color.FgRed).Printf("Error loading notifications: %v\n", err)
 		return
 	}
 
-	// Iterate over all saved notifications
-	for _, notification := range notifications {
+	// Filter notifications by username
+	userNotifications := filterNotificationsByUsername(notifications, username)
+
+	// Iterate over all saved notifications for the user
+	for _, notification := range userNotifications {
 		if notification.Status == "Pending" {
-			// Check current price for the cryptocurrency
+			// Check current price for the cryptocurrency using its ID
 			params := map[string]string{
-				"symbol":  notification.Crypto,
+				"id":     strconv.Itoa(notification.CryptoID), // Assuming API accepts ID as a string
 				"convert": "USD",
 			}
 
-			response := getAPIResponse("/listings/latest", params)
+			// Assuming this is inside your CheckNotifications function
+			response := api.GetAPIResponse("/info", params)
 
 			var result map[string]interface{}
-			json.Unmarshal(response, &result)
+			err := json.Unmarshal(response, &result)
+			if err != nil {
+   				color.New(color.FgRed).Printf("Error unmarshalling response: %v\n", err)
+    			return
+			}
 
+			// Check if the result is nil before proceeding
+			if result == nil {
+    			color.New(color.FgRed).Println("No data received from API.")
+    			return
+			}
+
+			// Now safely proceed with type assertions knowing result is not nil
 			data := result["data"].(map[string]interface{})[notification.Crypto].(map[string]interface{})
 			price := data["quote"].(map[string]interface{})["USD"].(map[string]interface{})["price"].(float64)
+
 
 			// If the price meets the target, update the notification status
 			if price >= notification.TargetPrice {
@@ -45,6 +64,17 @@ func checkNotifications() {
 	if err := savePriceNotifications(notifications); err != nil {
 		color.New(color.FgRed).Printf("Error saving notifications: %v\n", err)
 	}
+}
+
+// filterNotificationsByUsername filters notifications by username
+func filterNotificationsByUsername(notifications []*models.PriceNotification, username string) []*models.PriceNotification {
+	var filtered []*models.PriceNotification
+	for _, notification := range notifications {
+		if notification.Username == username {
+			filtered = append(filtered, notification)
+		}
+	}
+	return filtered
 }
 
 // Save the notifications to the JSON file

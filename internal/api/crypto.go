@@ -1,4 +1,4 @@
-package crypto
+package api
 
 import (
 	"cryptotracker/pkg/config"
@@ -7,9 +7,9 @@ import (
 	"net/http"
 )
 
-const baseURL = "http://api.coinlayer.com/"
+const baseURL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency"
 
-func getAPIResponse(endpoint string, params map[string]string) []byte {
+func GetAPIResponse(endpoint string, params map[string]string) []byte {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", baseURL+endpoint, nil)
 

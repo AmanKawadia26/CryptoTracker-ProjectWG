@@ -2,12 +2,9 @@ package ui
 
 import (
 	"fmt"
+	"github.com/fatih/color"
 	"os"
 	"os/exec"
-	"strings"
-
-	"github.com/fatih/color"
-	"golang.org/x/term"
 )
 
 // Define color variables using Fatih's color package
@@ -51,22 +48,9 @@ func DisplayMainMenu() {
 	fmt.Println(colorGreen("1. View Top 10 Cryptocurrencies"))
 	fmt.Println(colorGreen("2. Search for a Cryptocurrency"))
 	fmt.Println(colorGreen("3. Set Price Alert"))
-	fmt.Println(colorGreen("4. Check if user is Admin"))
-	fmt.Println(colorGreen("5. User Profile"))
-	fmt.Println(colorRed("6. Logout"))
+	fmt.Println(colorGreen("4. User Profile"))
+	fmt.Println(colorRed("5. Logout"))
 	fmt.Println()
-}
-
-// GetHiddenInput securely gets user input for passwords
-func GetHiddenInput(prompt string) string {
-	fmt.Print(colorPurple(prompt))
-	bytePassword, err := term.ReadPassword(int(os.Stdin.Fd()))
-	if err != nil {
-		PrintError("Error reading password: " + err.Error())
-		return ""
-	}
-	fmt.Println() // Print a newline after input
-	return strings.TrimSpace(string(bytePassword))
 }
 
 // PrintError prints an error message in red

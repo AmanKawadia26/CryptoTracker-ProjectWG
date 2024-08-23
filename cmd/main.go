@@ -1,8 +1,6 @@
 package main
 
 import (
-	"cryptotracker/internal/admin"
-	"cryptotracker/internal/auth"
 	"cryptotracker/pkg/config"
 	"cryptotracker/pkg/ui"
 )
@@ -15,14 +13,14 @@ func main() {
 	ui.DisplayWelcomeBanner()
 
 	// Start login/signup process
-	user, Role := auth.AuthenticateUser()
+	user, Role := ui.AuthenticateUser()
 
 	// If user is admin, show admin panel
 	if Role == "admin" {
-		admin.ShowAdminPanel()
+		ui.ShowAdminPanel()
 		return
 	}
 
 	// Display main user menu
-	mainMenu(user)
+	ui.MainMenu(user)
 }

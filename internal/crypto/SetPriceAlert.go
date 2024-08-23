@@ -1,12 +1,12 @@
 package crypto
 
 import (
+	"cryptotracker/internal/api"
 	"cryptotracker/models"
 	"encoding/json"
 	"fmt"
 	"github.com/fatih/color"
-	"io/ioutil"
-	"net/http"
+	//"io/ioutil"
 	"time"
 )
 
@@ -19,37 +19,58 @@ func SetPriceAlert(user *models.User) {
 	color.New(color.FgCyan).Print("Enter your target price in USD: ")
 	fmt.Scan(&targetPrice)
 
-	url := fmt.Sprintf("%slive?access_key=%s&symbols=%s", baseURL, apiKey, symbol)
-
-	resp, err := http.Get(url)
-	if err != nil {
-		color.New(color.FgRed).Printf("Error fetching data: %v\n", err)
-		return
+	params := map[string]string{
+		"symbol":  symbol,
+		"convert": "USD",
 	}
-	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		color.New(color.FgRed).Printf("Error reading response body: %v\n", err)
-		return
-	}
+	response := api.GetAPIResponse("/quotes/latest", params)
 
 	var result map[string]interface{}
-	err = json.Unmarshal(body, &result)
+	err := json.Unmarshal(response, &result)
 	if err != nil {
 		color.New(color.FgRed).Printf("Error unmarshalling API response: %v\n", err)
 		return
 	}
 
-	rates, ok := result["rates"].(map[string]interface{})
-	if !ok {
-		color.New(color.FgRed).Println("Error: Unexpected data structure in API response")
+	// Check if the data for the symbol is available
+	data, dataOk := result["data"].(map[string]interface{})
+	if !dataOk || data[symbol] == nil {
+		color.New(color.FgRed).Printf("Cryptocurrency data not found for symbol: %s\n", symbol)
 		return
 	}
 
-	currentPrice, ok := rates[symbol].(float64)
+	// Proceed if the cryptocurrency data is found
+	cryptoData, ok := data[symbol].(map[string]interface{})
 	if !ok {
-		color.New(color.FgRed).Printf("Error: Price data not available for %s\n", symbol)
+		color.New(color.FgRed).Printf("Unexpected data structure for symbol: %s\n", symbol)
+		return
+	}
+
+	// Safely check for price data in the response
+	quote, ok := cryptoData["quote"].(map[string]interface{})
+	if !ok || quote["USD"] == nil {
+		color.New(color.FgRed).Printf("Quote data not available for %s\n", symbol)
+		return
+	}
+
+	priceData, ok := quote["USD"].(map[string]interface{})
+	if !ok || priceData["price"] == nil {
+		color.New(color.FgRed).Printf("Price data not available for %s\n", symbol)
+		return
+	}
+
+	cryptoIDInterface, ok := cryptoData["id"].(float64) // Adjust based on actual data type of ID
+	if !ok || cryptoIDInterface == 0 {
+		color.New(color.FgRed).Printf("Cryptocurrency ID not found for symbol: %s\n", symbol)
+		return
+	}
+
+	cryptoID := int(cryptoIDInterface)
+
+	currentPrice, ok := priceData["price"].(float64)
+	if !ok {
+		color.New(color.FgRed).Println("Failed to convert price to float64.")
 		return
 	}
 
@@ -59,6 +80,7 @@ func SetPriceAlert(user *models.User) {
 	} else {
 		// Create a notification request if the target price is not met
 		notification := &models.PriceNotification{
+			CryptoID:    cryptoID,
 			Crypto:      symbol,
 			TargetPrice: targetPrice,
 			Username:    user.Username,

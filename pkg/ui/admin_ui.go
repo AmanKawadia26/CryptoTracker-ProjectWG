@@ -1,6 +1,7 @@
-package admin
+package ui
 
 import (
+	"cryptotracker/internal/admin"
 	"fmt"
 
 	"github.com/fatih/color"
@@ -20,11 +21,11 @@ func ShowAdminPanel() {
 
 		switch choice {
 		case 1:
-			ManageUsers()
+			admin.ManageUsers()
 		case 2:
-			ViewUserProfiles()
+			admin.ViewUserProfiles()
 		case 3:
-			ManageUserRequests()
+			admin.ManageUserRequests()
 		case 4:
 			color.New(color.FgCyan).Println("Logging out...")
 			return

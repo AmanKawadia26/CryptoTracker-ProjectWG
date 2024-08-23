@@ -1,18 +1,14 @@
 package crypto
 
 import (
+	"cryptotracker/internal/api"
 	"cryptotracker/models"
 	"encoding/json"
 	"fmt"
 	"github.com/fatih/color"
-	"io/ioutil"
-	"net/http"
+	"math/rand"
 	"strings"
 	"time"
-)
-
-const (
-	apiKey = "885b7aa609bbe129f6df31ea09a03a4e"
 )
 
 func SearchCryptocurrency() {
@@ -23,20 +19,59 @@ func SearchCryptocurrency() {
 	// Normalize the input to lowercase for case-insensitive comparison
 	input = strings.ToLower(input)
 
-	// Make an API call to get the list of cryptocurrencies
-	cryptoList := getCryptoList()
+	// Parameters for the API request to fetch all cryptocurrencies
+	params := map[string]string{
+		"start":   "1",
+		"limit":   "5000", // Load up to 5000 cryptocurrencies for now
+		"convert": "USD",
+	}
 
-	for symbol, name := range cryptoList {
-		if strings.ToLower(symbol) == input || strings.ToLower(name) == input {
-			// Cryptocurrency found, fetch current price
-			currentPrice := getCurrentPrice(symbol)
+	// Make a single API call to get all the cryptocurrencies
+	response := api.GetAPIResponse("/listings/latest", params)
+
+	var result map[string]interface{}
+	err := json.Unmarshal(response, &result)
+	if err != nil {
+		color.New(color.FgRed).Printf("Error unmarshalling API response: %v\n", err)
+		return
+	}
+
+	// Extract data from the API response
+	data, ok := result["data"].([]interface{})
+	if !ok {
+		color.New(color.FgRed).Println("Data not found in the response.")
+		return
+	}
+
+	// Iterate over the list of cryptocurrencies and look for a match by symbol or name
+	for _, item := range data {
+		crypto := item.(map[string]interface{})
+
+		// Get the symbol and name, normalize to lowercase for comparison
+		symbol := strings.ToLower(crypto["symbol"].(string))
+		name := strings.ToLower(crypto["name"].(string))
+
+		// Check if input matches either the symbol or name
+		if symbol == input || name == input {
+			// Proceed with normal processing if the cryptocurrency is found
+			priceObj, ok := crypto["quote"].(map[string]interface{})["USD"].(map[string]interface{})["price"]
+			if !ok {
+				color.New(color.FgRed).Println("Could not retrieve the price of the cryptocurrency.")
+				return
+			}
+
+			price, ok := priceObj.(float64)
+			if !ok {
+				color.New(color.FgRed).Println("Failed to convert price to float64.")
+				return
+			}
 
 			// Display the result
-			color.New(color.FgGreen).Printf("%s (%s): $%.2f\n", name, symbol, currentPrice)
+			color.New(color.FgGreen).Printf("%s (%s): $%.2f\n", crypto["name"].(string), crypto["symbol"].(string), price)
 			fmt.Println()
 
-			// Fetch and display the graph
-			displayCryptoGraph(symbol, name)
+			// Generate and display the graph
+			displayCryptoGraph(crypto["name"].(string), price)
 			return
 		}
 	}
@@ -60,67 +95,12 @@ func SearchCryptocurrency() {
 	color.New(color.FgGreen).Println("Request to add the cryptocurrency has been submitted.")
 }
 
-func getCryptoList() map[string]string {
-	url := fmt.Sprintf("%slist?access_key=%s", baseURL, apiKey)
-	resp, err := http.Get(url)
-	if err != nil {
-		color.New(color.FgRed).Printf("Error fetching crypto list: %v\n", err)
-		return nil
-	}
-	defer resp.Body.Close()
+func displayCryptoGraph(cryptoName string, currentPrice float64) {
+	// Generate random price data for the last 30 days
+	prices := generateRandomPrices(30, currentPrice)
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		color.New(color.FgRed).Printf("Error reading response body: %v\n", err)
-		return nil
-	}
-
-	var result map[string]interface{}
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		color.New(color.FgRed).Printf("Error unmarshalling API response: %v\n", err)
-		return nil
-	}
-
-	cryptoList := make(map[string]string)
-	for symbol, data := range result["crypto"].(map[string]interface{}) {
-		cryptoData := data.(map[string]interface{})
-		cryptoList[symbol] = cryptoData["name"].(string)
-	}
-
-	return cryptoList
-}
-
-func getCurrentPrice(symbol string) float64 {
-	url := fmt.Sprintf("%slive?access_key=%s&symbols=%s", baseURL, apiKey, symbol)
-	resp, err := http.Get(url)
-	if err != nil {
-		color.New(color.FgRed).Printf("Error fetching current price: %v\n", err)
-		return 0
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		color.New(color.FgRed).Printf("Error reading response body: %v\n", err)
-		return 0
-	}
-
-	var result map[string]interface{}
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		color.New(color.FgRed).Printf("Error unmarshalling API response: %v\n", err)
-		return 0
-	}
-
-	rates := result["rates"].(map[string]interface{})
-	return rates[symbol].(float64)
-}
-
-func displayCryptoGraph(symbol, name string) {
-	prices := getHistoricalPrices(symbol)
-
-	color.New(color.FgCyan).Printf("30-day price graph for %s (%s):\n\n", name, symbol)
+	// Display the graph
+	color.New(color.FgCyan).Printf("30-day price graph for %s:\n\n", cryptoName)
 
 	maxPrice := prices[0]
 	minPrice := prices[0]
@@ -157,35 +137,15 @@ func displayCryptoGraph(symbol, name string) {
 	fmt.Println("\n         Days ago")
 }
 
-func getHistoricalPrices(symbol string) []float64 {
-	prices := make([]float64, 30)
-	today := time.Now()
+func generateRandomPrices(days int, currentPrice float64) []float64 {
+	rand.Seed(time.Now().UnixNano())
+	prices := make([]float64, days)
+	prices[days-1] = currentPrice
 
-	for i := 29; i >= 0; i-- {
-		date := today.AddDate(0, 0, -i)
-		url := fmt.Sprintf("%s%s?access_key=%s&symbols=%s", baseURL, date.Format("2006-01-02"), apiKey, symbol)
-		resp, err := http.Get(url)
-		if err != nil {
-			color.New(color.FgRed).Printf("Error fetching historical price for %s: %v\n", date.Format("2006-01-02"), err)
-			continue
-		}
-		defer resp.Body.Close()
-
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			color.New(color.FgRed).Printf("Error reading response body: %v\n", err)
-			continue
-		}
-
-		var result map[string]interface{}
-		err = json.Unmarshal(body, &result)
-		if err != nil {
-			color.New(color.FgRed).Printf("Error unmarshalling API response: %v\n", err)
-			continue
-		}
-
-		rates := result["rates"].(map[string]interface{})
-		prices[i] = rates[symbol].(float64)
+	for i := days - 2; i >= 0; i-- {
+		// Generate a random percentage change between -5% and 5%
+		change := (rand.Float64() - 0.5) * 0.1
+		prices[i] = prices[i+1] * (1 + change)
 	}
 
 	return prices

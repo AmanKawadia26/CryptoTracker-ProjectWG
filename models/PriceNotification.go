@@ -1,6 +1,7 @@
 package models
 
 type PriceNotification struct {
+	CryptoID    int     `json:"crypto_id"`
 	Crypto      string  `json:"crypto"`              // The symbol of the cryptocurrency
 	TargetPrice float64 `json:"target_price"`        // The price the user wants to track
 	Username    string  `json:"username"`            // The username of the user who created the alert

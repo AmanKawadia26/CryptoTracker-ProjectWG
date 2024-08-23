@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-const userFile = "C:\\Users\\akawadia\\Downloads\\CryptoTracker\\cmd\\users.json"
+const userFile = "users.json"
 
 // SaveUser saves a user to a file
 func SaveUser(user *models.User) error {

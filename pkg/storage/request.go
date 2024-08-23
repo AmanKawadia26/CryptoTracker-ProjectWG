@@ -12,33 +12,9 @@ import (
 
 const requestFile = "requests.json"
 
-// SaveRequest saves a cryptocurrency request
-func SaveRequest(request *models.Request) error {
-	requests, err := loadRequests()
-	if err != nil {
-		color.New(color.FgRed).Printf("Error loading requests: %v\n", err)
-		return err
-	}
-
-	requests = append(requests, request)
-	data, err := json.Marshal(requests)
-	if err != nil {
-		color.New(color.FgRed).Printf("Error marshaling request data: %v\n", err)
-		return err
-	}
-
-	if err := ioutil.WriteFile(requestFile, data, 0644); err != nil {
-		color.New(color.FgRed).Printf("Error writing request data to file: %v\n", err)
-		return err
-	}
-
-	color.New(color.FgGreen).Println("Request saved successfully.")
-	return nil
-}
-
 // GetAllUsers retrieves all users
 func GetAllUsers() ([]*models.User, error) {
-	data, err := ioutil.ReadFile("C:\\Users\\akawadia\\Downloads\\CryptoTracker\\cmd\\users.json") // Assuming user data is stored in user.json
+	data, err := ioutil.ReadFile("users.json") // Assuming user data is stored in user.json
 	if err != nil {
 		color.New(color.FgRed).Printf("Error reading user file: %v\n", err)
 		log.Println("Error reading user file:", err)
@@ -132,5 +108,29 @@ func UpdateRequestStatus(request *models.Request) error {
 	}
 
 	color.New(color.FgGreen).Println("Request status updated successfully.")
+	return nil
+}
+
+// SaveRequest saves a cryptocurrency request
+func SaveRequest(request *models.Request) error {
+	requests, err := loadRequests()
+	if err != nil {
+		color.New(color.FgRed).Printf("Error loading requests: %v\n", err)
+		return err
+	}
+
+	requests = append(requests, request)
+	data, err := json.Marshal(requests)
+	if err != nil {
+		color.New(color.FgRed).Printf("Error marshaling request data: %v\n", err)
+		return err
+	}
+
+	if err := ioutil.WriteFile(requestFile, data, 0644); err != nil {
+		color.New(color.FgRed).Printf("Error writing request data to file: %v\n", err)
+		return err
+	}
+
+	color.New(color.FgGreen).Println("Request saved successfully.")
 	return nil
 }

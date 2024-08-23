@@ -3,7 +3,6 @@ package auth
 import (
 	"cryptotracker/models"
 	"cryptotracker/pkg/storage"
-	"cryptotracker/pkg/ui"
 	"cryptotracker/pkg/utils"
 	"cryptotracker/pkg/validation"
 	"errors"
@@ -34,7 +33,7 @@ func Signup() error {
 		}
 	}
 
-	password = ui.GetHiddenInput("Enter password: ")
+	password = utils.GetHiddenInput("Enter password: ")
 	if !validation.IsValidPassword(password) {
 		return errors.New("invalid password: must be at least 8 characters, include an uppercase letter, a number, and a special character")
 	}

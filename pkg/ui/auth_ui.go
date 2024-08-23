@@ -1,8 +1,8 @@
-package auth
+package ui
 
 import (
+	"cryptotracker/internal/auth"
 	"cryptotracker/models"
-	"cryptotracker/pkg/ui"
 	"fmt"
 	"github.com/fatih/color"
 )
@@ -10,8 +10,8 @@ import (
 // AuthenticateUser handles the login/signup process
 func AuthenticateUser() (*models.User, string) {
 	for {
-		ui.ClearScreen()
-		ui.DisplayAuthMenu()
+		ClearScreen()
+		DisplayAuthMenu()
 
 		var choice int
 		color.New(color.FgCyan).Print("Enter your choice: ")
@@ -19,13 +19,13 @@ func AuthenticateUser() (*models.User, string) {
 
 		switch choice {
 		case 1:
-			if user, Role, err := Login(); err == nil {
+			if user, Role, err := auth.Login(); err == nil {
 				return user, Role
 			} else {
 				color.New(color.FgRed).Println("Login failed:", err)
 			}
 		case 2:
-			if err := Signup(); err != nil {
+			if err := auth.Signup(); err != nil {
 				color.New(color.FgRed).Println("Signup failed:", err)
 			} else {
 				color.New(color.FgGreen).Println("Signup successful. Please login.")
