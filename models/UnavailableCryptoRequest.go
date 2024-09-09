@@ -1,9 +1,15 @@
+//go:build !test
+// +build !test
+
 package models
 
+import "time"
+
 type UnavailableCryptoRequest struct {
-	ID             int    `json:"id"`
-	UserID         int    `json:"user_id"`
-	CryptoSymbol   string `json:"crypto_symbol"`
-	RequestMessage string `json:"request_message"`
-	Status         string `json:"status"` // Possible values: Pending, Approved, Rejected
+	CryptoSymbol string `bson:"crypto_symbol" json:"crypto_symbol"`
+	//CryptoName     string    `bson:"crypto_name" json:"crypto_name"`
+	UserName       string    `bson:"user_name" json:"user_name"`
+	RequestMessage string    `bson:"request_message" json:"request_message"`
+	Status         string    `bson:"status" json:"status"`
+	Timestamp      time.Time `bson:"timestamp" json:"timestamp"` // Using time.Time for timestamps
 }

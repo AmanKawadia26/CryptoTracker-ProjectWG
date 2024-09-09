@@ -35,7 +35,14 @@ func DisplayWelcomeBanner() {
 
 // DisplayAuthMenu shows the authentication menu
 func DisplayAuthMenu() {
-	fmt.Println(colorYellow("Authentication Menu:"))
+	fmt.Println()
+	fmt.Println()
+	fmt.Println(colorBlue("=================================="))
+	fmt.Println(colorYellow("        Authentication Menu       "))
+	fmt.Println(colorBlue("=================================="))
+	fmt.Println()
+	fmt.Println()
+	//fmt.Println(colorYellow("Authentication Menu:"))
 	fmt.Println(colorBlue("1. Login"))
 	fmt.Println(colorBlue("2. SignUp"))
 	fmt.Println(colorBlue("3. Exit"))
@@ -44,7 +51,11 @@ func DisplayAuthMenu() {
 
 // DisplayMainMenu shows the main menu for regular users
 func DisplayMainMenu() {
-	fmt.Println(colorYellow("Main Menu:"))
+	fmt.Println()
+	fmt.Println(colorBlue("=================================="))
+	fmt.Println(colorYellow("             Main Menu            "))
+	fmt.Println(colorBlue("=================================="))
+	fmt.Println()
 	fmt.Println(colorGreen("1. View Top 10 Cryptocurrencies"))
 	fmt.Println(colorGreen("2. Search for a Cryptocurrency"))
 	fmt.Println(colorGreen("3. Set Price Alert"))

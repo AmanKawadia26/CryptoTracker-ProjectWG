@@ -1,73 +1,33 @@
 package auth
 
 import (
+	"context"
 	"cryptotracker/models"
-	"cryptotracker/pkg/storage"
-	"cryptotracker/pkg/utils"
-	"cryptotracker/pkg/validation"
 	"errors"
-	"fmt"
-	"github.com/fatih/color"
+	"github.com/jackc/pgx/v4"
 	"log"
 )
 
-// Signup handles the signup process
-func Signup() error {
-
-	users, err := storage.LoadUsers()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var username, password, email, pan string
-	var mobile int
-
-	color.New(color.FgCyan).Print("Enter username: ")
-	fmt.Scan(&username)
-	if !validation.IsValidUsername(username) {
-		return errors.New("invalid username: must be one word, alphanumeric, and can contain underscores")
-	}
-	for _, user := range users {
-		if user.Username == username {
-			return errors.New("user already exists")
-		}
-	}
-
-	password = utils.GetHiddenInput("Enter password: ")
-	if !validation.IsValidPassword(password) {
-		return errors.New("invalid password: must be at least 8 characters, include an uppercase letter, a number, and a special character")
-	}
-
-	color.New(color.FgCyan).Print("Enter email: ")
-	fmt.Scan(&email)
-	if !validation.IsValidEmail(email) {
-		return errors.New("invalid email: must be a valid email address")
-	}
-
-	color.New(color.FgCyan).Print("Enter mobile (10 digits): ")
-	fmt.Scan(&mobile)
-	if !validation.IsValidMobile(mobile) {
-		return errors.New("invalid mobile number: must be 10 digits")
-	}
-
-	color.New(color.FgCyan).Print("Enter PAN: ")
-	fmt.Scan(&pan)
-
-	hashedPassword := utils.HashPassword(password)
-
-	user := &models.User{
-		Username: username,
-		Password: hashedPassword,
-		Email:    email,
-		Mobile:   mobile,
-		IsAdmin:  false,
-		Role:     "user",
-	}
-
-	if err := storage.SaveUser(user); err != nil {
+// Signup handles the signup process using PostgreSQL
+func Signup(conn *pgx.Conn, user *models.User) error {
+	// Check if the user already exists in PostgreSQL
+	var existingUser models.User
+	err := conn.QueryRow(context.Background(), "SELECT username FROM users WHERE username=$1", user.Username).Scan(&existingUser.Username)
+	if err == nil {
+		return errors.New("user already exists")
+	} else if err != pgx.ErrNoRows {
+		log.Fatalf("failed to query user: %v", err)
 		return err
 	}
 
-	color.New(color.FgGreen).Println("Signup successful.")
+	// Insert the new user into PostgreSQL
+	_, err = conn.Exec(context.Background(),
+		"INSERT INTO users (userid, username, email, mobile, password, role, isadmin) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+		user.UserID, user.Username, user.Email, user.Mobile, user.Password, user.Role, user.IsAdmin)
+	if err != nil {
+		log.Fatalf("failed to insert user: %v", err)
+		return err
+	}
+
 	return nil
 }
